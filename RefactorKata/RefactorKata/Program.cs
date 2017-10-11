@@ -1,41 +1,42 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.SqlClient;
 
 namespace RefactorKata
 {
-    class Program
+    internal class Program
     {
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
-            //This is intentionally bad : (  Let's Refactor!
-            System.Data.SqlClient.SqlConnection Conn = new System.Data.SqlClient.SqlConnection("Server=.;Database=myDataBase;User Id=myUsername;Password = myPassword;");
+            var products = GetProducts();
 
-            System.Data.SqlClient.SqlCommand cmd = Conn.CreateCommand();
-            cmd.CommandText = "select * from Products";
-            /*
-             * cmd.CommandText = "Select * from Invoices";
-             */
-            System.Data.SqlClient.SqlDataReader reader = cmd.ExecuteReader();
-            List<Product> products = new List<Product>();
-
-            //TODO: Replace with Dapper
-            while (reader.Read())
+            foreach (var product in products)
             {
-                var prod = new Product();
-                prod.name = reader["Name"].ToString();
-                products.Add(prod);
-            }
-            Conn.Dispose();
-            Console.WriteLine("Products Loaded!");
-            for (int i =0; i< products.Count; i++)
-            {
-                Console.WriteLine(products[i].name);
+                Console.WriteLine("This product is called: " + product.Name);
             }
         }
-    }
-    public class Product
-    {
-        public string name;
-        public string Name { get { return name; } set { name = value; } }
+
+        private static IEnumerable<Product> GetProducts()
+        {
+            using (var conn =
+                new SqlConnection("Server=.;Database=myDataBase;User Id=myUsername;Password = myPassword;"))
+            {
+                var cmd = conn.CreateCommand();
+                cmd.CommandText = "select * from Products";
+
+                var reader = cmd.ExecuteReader();
+                var products = new List<Product>();
+
+
+                while (reader.Read())
+                {
+                    var prod = new Product { Name = reader["Name"].ToString() };
+                    products.Add(prod);
+                }
+
+                Console.WriteLine("Products Loaded!");
+                return products;
+            }
+        }
     }
 }

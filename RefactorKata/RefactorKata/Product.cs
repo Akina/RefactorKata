@@ -4,7 +4,7 @@ using System.Text;
 
 namespace RefactorKata
 {
-    class Product
+    public class Product
     {
         public string Name { get; set; }
     }
